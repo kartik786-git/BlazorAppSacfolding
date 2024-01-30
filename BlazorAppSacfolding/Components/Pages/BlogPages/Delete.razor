@@ -1,0 +1,61 @@
+﻿@page "/blogs/delete"
+@inject BlazorAppSacfolding.Data.BlazorAppSacfoldingContext DB
+@using BlazorAppSacfolding
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Blog</h4>
+    <hr />
+    @if (blog is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@blog.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@blog.Description</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Author</dt>
+            <dd class="col-sm-10">@blog.Author</dd>
+        </dl>
+        <EditForm method="post" Model="blog" OnValidSubmit="DeleteBlog" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(blog is null)">Delete</button> |
+            <a href="/blogs">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Blog? blog;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        blog = await DB.Blog.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (blog is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteBlog()
+    {
+        DB.Blog.Remove(blog!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/blogs");
+    }
+}

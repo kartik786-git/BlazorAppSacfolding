@@ -1,0 +1,40 @@
+﻿@page "/blogs"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject BlazorAppSacfolding.Data.BlazorAppSacfoldingContext DB
+@using BlazorAppSacfolding
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="blogs/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="filterBlogs" Pagination="@pagination">
+    <PropertyColumn Property="blog => blog.Name" Sortable="true" >
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="blog name..." />
+            </div>
+        </ColumnOptions>
+        </PropertyColumn>
+    <PropertyColumn Property="blog => blog.Description" />
+    <PropertyColumn Property="blog => blog.Author" />
+
+    <TemplateColumn Context="blog">
+        <a href="@($"blogs/edit?id={blog.Id}")">Edit</a> |
+        <a href="@($"blogs/details?id={blog.Id}")">Details</a> |
+        <a href="@($"blogs/delete?id={blog.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@pagination" />
+
+@code {
+    string nameFilter = string.Empty;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 2 };
+
+    IQueryable<Blog> filterBlogs => DB.Blog.Where(x => x.Name.Contains(nameFilter));
+}

@@ -1,0 +1,96 @@
+﻿@page "/Blogs/edit"
+@inject BlazorAppSacfolding.Data.BlazorAppSacfoldingContext DB
+@using BlazorAppSacfolding
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Blog</h4>
+<hr />
+@if (Blog is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Blog" OnValidSubmit="UpdateBlog" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Blog.Id" value="@Blog.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Blog.Name" class="form-control" />
+                    <ValidationMessage For="() => Blog.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="Blog.Description" class="form-control" />
+                    <ValidationMessage For="() => Blog.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="author" class="form-label">Author:</label>
+                    <InputText id="author" @bind-Value="Blog.Author" class="form-control" />
+                    <ValidationMessage For="() => Blog.Author" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/blogs">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Blog? Blog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Blog ??= await DB.Blog.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Blog is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateBlog()
+    {
+        DB.Attach(Blog!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!BlogExists(Blog!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/blogs");
+    }
+
+    bool BlogExists(int id)
+    {
+        return DB.Blog.Any(e => e.Id == id);
+    }
+}
